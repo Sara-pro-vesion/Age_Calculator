@@ -6,88 +6,67 @@ export default function AgeCard() {
   const [day, setDay] = useState('')
   const [month, setMonth] = useState('')
   const [year, setYear] = useState('')
-  const [alert, setAlert] = useState(false)
   const [error, setError] = useState(false)
+  const [hasCalculated, setHasCalculated] = useState(false)
 
-  const [years, setYears] = useState(0)
-  const [months, setMonths] = useState(0)
-  const [days, setDays] = useState(0)
+  const d = parseInt(day, 10)
+  const m = parseInt(month, 10)
+  const y = parseInt(year, 10)
 
-  const validate = () => {
-    const d = parseInt(day, 10)
-    const m = parseInt(month, 10)
-    const y = parseInt(year, 10)
-
-    if (isNaN(d) || isNaN(m) || isNaN(y)) {
-      setError(true)
-      return false
-    }
-
-    if (m < 1 || m > 12) {
-      setError(true)
-      return false
-    }
+  const isValidDate = () => {
+    if (isNaN(d) || isNaN(m) || isNaN(y)) return false
+    if (m < 1 || m > 12) return false
 
     const birthDate = new Date(y, m - 1, d)
     if (birthDate.getFullYear() !== y || birthDate.getMonth() !== m - 1 || birthDate.getDate() !== d) {
-      setError(true)
       return false
     }
 
     const today = new Date()
-    if (birthDate > today) {
-      setError(true)
-      return false
-    }
+    if (birthDate > today) return false
 
-    setError(false)
     return true
   }
 
-  const calculateExactAge = (bDay, bMonth, bYear) => {
+  const calculateExactAge = () => {
+    if (!isValidDate()) return { years: 0, months: 0, days: 0 }
+
     const today = new Date()
     let cDate = today.getDate()
     let cMonth = today.getMonth() + 1
     let cYear = today.getFullYear()
 
-    if (cDate < bDay) {
+    if (cDate < d) {
       const previousMonth = new Date(cYear, cMonth - 1, 0)
       const daysInPrevMonth = previousMonth.getDate()
       cDate += daysInPrevMonth
       cMonth -= 1
     }
 
-    if (cMonth < bMonth) {
+    if (cMonth < m) {
       cMonth += 12
       cYear -= 1
     }
 
-    const resYears = cYear - bYear
-    const resMonths = cMonth - bMonth
-    const resDays = cDate - bDay
-
-    return { years: resYears, months: resMonths, days: resDays }
+    return {
+      years: cYear - y,
+      months: cMonth - m,
+      days: cDate - d
+    }
   }
 
-  const calculateAge = () => {
-    if (!validate()) {
-      setAlert(true)
-      setYears(0)
-      setMonths(0)
-      setDays(0)
+  const handleCalculate = () => {
+    if (!isValidDate()) {
+      setError(true)
+      setHasCalculated(false)
       return
     }
 
-    setAlert(false)
-    const bDay = parseInt(day, 10)
-    const bMonth = parseInt(month, 10)
-    const bYear = parseInt(year, 10)
-
-    const result = calculateExactAge(bDay, bMonth, bYear)
-    setYears(result.years)
-    setMonths(result.months)
-    setDays(result.days)
+    setError(false)
+    setHasCalculated(true)
   }
+
+  const { years, months, days } = hasCalculated ? calculateExactAge() : { years: 0, months: 0, days: 0 }
 
   return (
     <div className='flex flex-col w-[100%] md:w-[28rem] h-[500px] md:h-fit py-15 items-center justify-center gap-10 bg-white p-5 border-none rounded-xl rounded-br-[8rem] shadow-xl'>
@@ -97,11 +76,11 @@ export default function AgeCard() {
         <DateInput datePeriod={'year'} value={year} onValueChange={setYear} />
       </div>
 
-      {(alert || error) && <p className='text-red-600'>Please fill all fields correctly.</p>}
+      {error && <p className='text-red-600'>Please fill all fields correctly.</p>}
 
       <div className='flex justify-center items-center w-full'>
         <hr className='w-[50%] text-[#D4D4D4]' />
-        <button onClick={calculateAge} className='border-none rounded-3xl bg-[#9E4EFF] text-2xl text-white w-[40px] h-[40px]'>⤵</button>
+        <button onClick={handleCalculate} className='border-none rounded-3xl bg-[#9E4EFF] text-2xl text-white w-[40px] h-[40px]'>⤵</button>
         <hr className='w-[50%] text-[#D4D4D4]' />
       </div>
 
